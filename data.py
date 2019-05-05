@@ -12,8 +12,6 @@ import random
 import numpy as np
 import os
 
-def interp(sample,x,y):
-    return torch.from_numpy(np.hstack([np.interp(sample.numpy(),x.numpy(),y[:,i].numpy())[:,None] for i in range(y.shape[1])])).float()
 class Data(torch.utils.data.Dataset):
     def __init__(self,file,scale=63,repeats=1):
         torch.utils.data.Dataset.__init__(self)
@@ -30,7 +28,7 @@ class Data(torch.utils.data.Dataset):
     def __len__(self):
         return len(self.data)
 
-def TrainMergeFn(spatial_size=95, jitter=8):
+def MergeFn():
     def merge(tbl):
         v=torch.Tensor([[1,0,0]])
         targets=[x['target'] for x in tbl]
@@ -58,23 +56,7 @@ def TrainMergeFn(spatial_size=95, jitter=8):
             features.append(f)
         return {'input': scn.InputLayerInput(torch.cat(locations,0), torch.cat(features,0)), 'target': torch.LongTensor(targets)}
     return merge
-def TestMergeFn(spatial_size=95):
-    def merge(tbl):
-        v=torch.Tensor([[1,0,0]])
-        targets=[x['target'] for x in tbl]
-        locations=[]
-        features=[]
-        for idx,char in enumerate(tbl):
-            coords=char['coords']
-            coords = torch.cat([coords.long(),torch.LongTensor([idx]).expand([coords.size(0),1])],1)
-            locations.append(coords)
-            f=char['features']
-            f = torch.cat([f.float(),torch.ones([f.size(0),1])],1)
-            features.append(f)
-        return {'input': scn.InputLayerInput(torch.cat(locations,0), torch.cat(features,0)), 'target': torch.LongTensor(targets)}
-    return merge
-
 
 def get_iterators(*args):
-    return {'train': torch.utils.data.DataLoader(Data('data/train.txt',repeats=1), collate_fn=TrainMergeFn(), batch_size=50, shuffle=True, num_workers=10),
-            'val': torch.utils.data.DataLoader(Data('data/test.txt',repeats=1), collate_fn=TestMergeFn(), batch_size=100, shuffle=True, num_workers=10)}
+    return {'train': torch.utils.data.DataLoader(Data('data/train.txt',repeats=1), collate_fn=MergeFn(), batch_size=50, shuffle=True, num_workers=10),
+            'val': torch.utils.data.DataLoader(Data('data/test.txt',repeats=1), collate_fn=MergeFn(), batch_size=100, shuffle=True, num_workers=10)}

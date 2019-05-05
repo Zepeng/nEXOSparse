@@ -7,6 +7,7 @@
 import torch
 import torch.nn as nn
 import sparseconvnet as scn
+from TrainValidate import *
 from data import get_iterators
 
 # two-dimensional SparseConvNet
@@ -42,7 +43,7 @@ scale=63
 dataset = get_iterators(model.spatial_size, scale)
 print('Input spatial size:', model.spatial_size, 'Data scale:', scale)
 
-scn.ClassificationTrainValidate(
+TrainValidate(
     model, dataset,
     {'n_epochs': 100,
      'initial_lr': 0.1,
