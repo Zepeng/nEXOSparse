@@ -26,7 +26,7 @@ class Model(nn.Module):
             scn.BatchNormReLU(64),
             scn.SparseToDense(2, 64))
         self.spatial_size= self.sparseModel.input_spatial_size(torch.LongTensor([1, 1]))
-        self.inputLayer = scn.InputLayer(2,self.spatial_size,2)
+        self.inputLayer = scn.InputLayer(2,self.spatial_size,3)
         self.linear = nn.Linear(64, 2)
 
     def forward(self, x):

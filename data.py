@@ -50,13 +50,11 @@ def MergeFn():
             coords = torch.cat([coords.long(),torch.LongTensor([idx]).expand([coords.size(0),1])],1)
             locations.append(coords)
             f=char['features']
-            f=torch.mm(f.short(), m.short())
-            #f /= (f**2).sum(1,keepdim=True)**0.5
-            f = torch.cat([f.float(),torch.ones([f.size(0),1])],1)
+            f = torch.cat([f.float(),torch.Tensor([idx]).expand([f.size(0),1])],1)
             features.append(f)
         return {'input': scn.InputLayerInput(torch.cat(locations,0), torch.cat(features,0)), 'target': torch.LongTensor(targets)}
     return merge
 
 def get_iterators(*args):
-    return {'train': torch.utils.data.DataLoader(Data('data/train.txt',repeats=1), collate_fn=MergeFn(), batch_size=50, shuffle=True, num_workers=10),
+    return {'train': torch.utils.data.DataLoader(Data('data/train.txt',repeats=1), collate_fn=MergeFn(), batch_size=100, shuffle=True, num_workers=10),
             'val': torch.utils.data.DataLoader(Data('data/test.txt',repeats=1), collate_fn=MergeFn(), batch_size=100, shuffle=True, num_workers=10)}
