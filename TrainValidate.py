@@ -21,26 +21,22 @@ def updateStats(stats, output, target, loss):
     nClasses = output.size(1)
     if not stats:
         stats['top1'] = 0
-        stats['top5'] = 0
         stats['n'] = 0
         stats['nll'] = 0
         stats['confusion matrix'] = output.new().resize_(
             nClasses, nClasses).zero_()
     stats['n'] = stats['n'] + batchSize
     stats['nll'] = stats['nll'] + loss * batchSize
-    _, predictions = output.float().sort(1, True)
-    correct = predictions.eq(
-        target[:, None].expand_as(output))
+    #_, predictions = output.float().sort(1, True)
+    _, predicted = output.max(1)
+    correct = predicted.eq(target).sum().item()
     # Top-1 score
-    stats['top1'] += correct[:, :1].long().sum().item()
-    # Top-5 score
-    l = min(5, correct.size(1))
-    stats['top5'] += correct[:, :l].long().sum().item()
+    stats['top1'] += correct #correct[:, :1].long().sum().item()
     stats['confusion matrix'].index_add_(0, target, F.softmax(output, 1).detach())
 
 
 def TrainValidate(model, dataset, p):
-    criterion = F.cross_entropy
+    criterion = nn.CrossEntropyLoss()
     if 'n_epochs' not in p:
         p['n_epochs'] = 100
     if 'initial_lr' not in p:
@@ -94,16 +90,10 @@ def TrainValidate(model, dataset, p):
             updateStats(stats, output, batch['target'], loss.item())
             loss.backward()
             optimizer.step()
-        print(epoch, 'train: top1=%.2f%% top5=%.2f%% nll:%.2f time:%.1fs' %
-              (100 *
-               (1 -
-                1.0 * stats['top1'] /
-                   stats['n']), 100 *
-                  (1 -
-                   1.0 * stats['top5'] /
-                   stats['n']), stats['nll'] /
-                  stats['n'], time.time() -
-                  start))
+        print(epoch, 'train: top1=%.2f%%  nll:%.2f time:%.1fs' %
+              (100 * (1 - 1.0 * stats['top1'] / stats['n']),
+               stats['nll'] / stats['n'],
+               time.time() - start))
         cm = stats['confusion matrix'].cpu().numpy()
         np.savetxt('train confusion matrix.csv', cm, delimiter=',')
         cm *= 255 / (cm.sum(1, keepdims=True) + 1e-9)
@@ -126,18 +116,10 @@ def TrainValidate(model, dataset, p):
                 output = model(batch['input'])
                 loss = criterion(output, batch['target'])
                 updateStats(stats, output, batch['target'], loss.item())
-            print(epoch, 'test:  top1=%.2f%% top5=%.2f%% nll:%.2f time:%.1fs' %
-                  (100 *
-                   (1 -
-                    1.0 *
-                    stats['top1'] /
-                       stats['n']), 100 *
-                      (1 -
-                       1.0 *
-                       stats['top5'] /
-                       stats['n']), stats['nll'] /
-                      stats['n'], time.time() -
-                      start), '%.3e MultiplyAdds/sample %.3e HiddenStates/sample' %
+            print(epoch, 'test:  top1=%.2f%% nll:%.2f time:%.1fs' %
+                  (100 * (1 - 1.0 * stats['top1'] / stats['n']),
+                   stats['nll'] / stats['n'], time.time() - start),
+                  '%.3e MultiplyAdds/sample %.3e HiddenStates/sample' %
                   (s.forward_pass_multiplyAdd_count /
                       stats['n'], s.forward_pass_hidden_states /
                       stats['n']))
@@ -168,9 +150,8 @@ def TrainValidate(model, dataset, p):
                 stats = {}
                 updateStats(stats, predictions, targets, loss.item())
                 print(epoch, 'test rep ', rep,
-                      ': top1=%.2f%% top5=%.2f%% nll:%.2f time:%.1fs' % (
+                      ': top1=%.2f%% nll:%.2f time:%.1fs' % (
                           100 * (1 - 1.0 * stats['top1'] / stats['n']),
-                          100 * (1 - 1.0 * stats['top5'] / stats['n']),
                           stats['nll'] / stats['n'],
                           time.time() - start),
                       '%.3e MultiplyAdds/sample %.3e HiddenStates/sample' % (
