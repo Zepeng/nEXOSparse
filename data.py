@@ -15,14 +15,12 @@ import os
 class Data(torch.utils.data.Dataset):
     def __init__(self,file,scale=63,repeats=1):
         torch.utils.data.Dataset.__init__(self)
-        flist = open(file, 'r')
-        for k, pfile in enumerate(flist):
-            self.data = pickle.load(open(pfile.strip(), 'rb'))
-            for j in range(len(self.data)):
-                self.data[j]['coords'] = torch.from_numpy(self.data[j]['coords'])
-                self.data[j]['features'] = torch.from_numpy(self.data[j]['features']).unsqueeze(1)
-                self.data[j]['target'] = self.data[j]['target']
-                self.data[j]['features'] = torch.cat([self.data[j]['features'], self.data[j]['features']], 1)
+        self.data = pickle.load(open(file, 'rb'))
+        for j in range(len(self.data)):
+            self.data[j]['coords'] = torch.from_numpy(self.data[j]['coords'])
+            self.data[j]['features'] = torch.from_numpy(self.data[j]['features']).unsqueeze(1)
+            self.data[j]['target'] = self.data[j]['target']
+            self.data[j]['features'] = torch.cat([self.data[j]['features'], self.data[j]['features']], 1)
     def __getitem__(self,n):
         return self.data[n]
     def __len__(self):
@@ -56,5 +54,5 @@ def MergeFn():
     return merge
 
 def get_iterators(*args):
-    return {'train': torch.utils.data.DataLoader(Data('data/train.txt',repeats=1), collate_fn=MergeFn(), batch_size=100, shuffle=True, num_workers=10),
-            'val': torch.utils.data.DataLoader(Data('data/test.txt',repeats=1), collate_fn=MergeFn(), batch_size=100, shuffle=True, num_workers=10)}
+    return {'train': torch.utils.data.DataLoader(Data('data/train_0.p',repeats=1), collate_fn=MergeFn(), batch_size=100, shuffle=True, num_workers=10),
+            'val': torch.utils.data.DataLoader(Data('data/test_0.p',repeats=1), collate_fn=MergeFn(), batch_size=100, shuffle=True, num_workers=10)}
