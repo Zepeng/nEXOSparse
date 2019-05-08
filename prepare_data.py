@@ -41,6 +41,7 @@ def pickle_img(img_list, batch_num, img_type):
     f = open(img_list,'r')
     tosave = []
     for index, line in enumerate(f):
+        singleimg = {}
         if index <= batch_num*batch_size or index > (1+batch_num)*(batch_size):
             continue
         print(line)
@@ -69,8 +70,10 @@ def pickle_img(img_list, batch_num, img_type):
             cl.append(1)
         else:
             cl.append(0)
-        _item['coords'] = coords
-        _item['features'] = col
+        singleimg['coords'] = coords
+        singleimg['features'] = col
+        pickle.dump(singleimg, open ("./data/img%s_%d.p" % (img_type, index), "wb"))
+        _item['img'] = "./data/img%s_%d.p" % (img_type, index)
         _item['target'] = cl[0]
         tosave.append(_item)
         print(len(tosave))
