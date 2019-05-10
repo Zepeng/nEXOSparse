@@ -62,5 +62,5 @@ def MergeFn():
     return merge
 
 def get_iterators(*args):
-    return {'train': torch.utils.data.DataLoader(Data('data/train_0.p',repeats=1), collate_fn=MergeFn(), batch_size=50, ),
-            'val': torch.utils.data.DataLoader(Data('data/test_0.p',repeats=1), collate_fn=MergeFn(), batch_size=50, )}
+    return {'train': torch.utils.data.DataLoader(Data('data/train_0.p',repeats=1), collate_fn=MergeFn(), batch_size=100, ),
+            'val': torch.utils.data.DataLoader(Data('data/test_0.p',repeats=1), collate_fn=MergeFn(), batch_size=100, )}
