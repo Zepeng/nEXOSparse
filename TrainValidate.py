@@ -91,9 +91,9 @@ def TrainValidate(model, dataset, p):
             loss.backward()
             optimizer.step()
         print(epoch, 'train: top1=%.2f%%  nll:%.2f time:%.1fs' %
-              (100 * stats['top1'] / stats['n']),
-               stats['nll'] / stats['n'],
-               time.time() - start))
+              (100 * stats['top1'] / stats['n'],
+            stats['nll'] / stats['n'],
+            time.time() - start))
         cm = stats['confusion matrix'].cpu().numpy()
         np.savetxt('train confusion matrix.csv', cm, delimiter=',')
         cm *= 255 / (cm.sum(1, keepdims=True) + 1e-9)
@@ -117,7 +117,7 @@ def TrainValidate(model, dataset, p):
                 loss = criterion(output, batch['target'])
                 updateStats(stats, output, batch['target'], loss.item())
             print(epoch, 'test:  top1=%.2f%% nll:%.2f time:%.1fs' %
-                  (100 * * stats['top1'] / stats['n']),
+                  (100 * stats['top1'] / stats['n'],
                    stats['nll'] / stats['n'], time.time() - start),
                   '%.3e MultiplyAdds/sample %.3e HiddenStates/sample' %
                   (s.forward_pass_multiplyAdd_count /

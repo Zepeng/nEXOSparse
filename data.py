@@ -15,13 +15,21 @@ import os
 class Data(torch.utils.data.Dataset):
     def __init__(self,file,scale=63,repeats=1):
         torch.utils.data.Dataset.__init__(self)
-        self.data = pickle.load(open(file, 'rb'))
-        for j in range(len(self.data)):
-            self.data[j]['coords'] = torch.from_numpy(self.data[j]['coords'])
-            self.data[j]['features'] = torch.from_numpy(self.data[j]['features']).unsqueeze(1)
-            self.data[j]['target'] = self.data[j]['target']
-            self.data[j]['features'] = torch.cat([self.data[j]['features'], self.data[j]['features']], 1)
+        self.data = []
+        p = pickle.load(open(file, 'rb'))
+        for j in range(len(p)):
+            item = {}
+            item['target'] = p[j][1]
+            msparse = p[j][0]
+            item['coords'] = torch.cat([torch.from_numpy(msparse.nonzero()[0]).view(-1,1), torch.from_numpy(msparse.nonzero()[1]).view(-1,1)], 1)
+            features = torch.from_numpy(msparse.data).view(-1,1) #torch.tensor(self.data[j]['features']).unsqueeze(1)
+            item['features'] = torch.cat([features, features], 1)
+            self.data.append(item)
     def __getitem__(self,n):
+        #unpickle = pickle.load(open(self.data[n]['img'], 'rb'), encoding='bytes')
+        #self.data[n]['coords'] = torch.tensor(unpickle[b'coords'])
+        #features = torch.tensor(unpickle[b'features']).unsqueeze(1)
+        #self.data[n]['features'] = torch.cat([features, features], 1)
         return self.data[n]
     def __len__(self):
         return len(self.data)
@@ -54,5 +62,5 @@ def MergeFn():
     return merge
 
 def get_iterators(*args):
-    return {'train': torch.utils.data.DataLoader(Data('data/train_0.p',repeats=1), collate_fn=MergeFn(), batch_size=100, shuffle=True, num_workers=10),
-            'val': torch.utils.data.DataLoader(Data('data/test_0.p',repeats=1), collate_fn=MergeFn(), batch_size=100, shuffle=True, num_workers=10)}
+    return {'train': torch.utils.data.DataLoader(Data('data/train_0.p',repeats=1), collate_fn=MergeFn(), batch_size=50, ),
+            'val': torch.utils.data.DataLoader(Data('data/test_0.p',repeats=1), collate_fn=MergeFn(), batch_size=50, )}

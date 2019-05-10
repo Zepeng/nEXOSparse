@@ -6,15 +6,14 @@
 # LICENSE file in the root directory of this source tree.
 
 import numpy as np
-import torch
 import glob, math, os, random
 import pickle
 import argparse
 #import pandas as pd
-import numpy as np
 from PIL import Image
+from scipy import sparse
 
-batch_size = 1000
+batch_size = 10000
 
 def split_files():
     imagelist = glob.glob('./sparse_img/*jpg')
@@ -44,7 +43,6 @@ def pickle_img(img_list, batch_num, img_type):
         singleimg = {}
         if index <= batch_num*batch_size or index > (1+batch_num)*(batch_size):
             continue
-        print(line)
         # Get image name from the pandas df
         single_image_name = line.split()[0]
         # Open image
@@ -54,29 +52,27 @@ def pickle_img(img_list, batch_num, img_type):
         coords=[]
         col=[]
         cl=[]
-        _item = {}
-        for x in range(500):
-            for y in range(1700):
-                for z in range(2):
-                    if npimg[x, y, z] > 0:
-                        if z == 1:
-                            coords.append([x,y+500])
-                        else:
-                            coords.append([x, y])
-                        col.append(npimg[x, y, z])
-        coords=np.array(coords,dtype='int16')
-        col=np.array(col,dtype='uint8')
+        sx = sparse.csc_matrix(npimg[:,:,0])
+        sy = sparse.csc_matrix(npimg[:,:,1])
+        coords_x = np.concatenate((sx.nonzero()[0] + 500, sy.nonzero()[0]))
+        coords_y = np.concatenate((sx.nonzero()[1], sy.nonzero()[1]))
+        col = np.concatenate((sx.data, sy.data))
+        coords = sparse.csc_matrix((col, (coords_x, coords_y)))
+        #_item = {}
+        #coords=np.array(coords,dtype='int16')
+        #col=np.array(col,dtype='uint8')
         if 'signal' in single_image_name:
             cl.append(1)
         else:
             cl.append(0)
-        singleimg['coords'] = coords
-        singleimg['features'] = col
-        pickle.dump(singleimg, open ("./data/img%s_%d.p" % (img_type, index), "wb"))
-        _item['img'] = "./data/img%s_%d.p" % (img_type, index)
-        _item['target'] = cl[0]
+        #_item['coords'] = coords
+        #_item['features'] = col
+        #pickle.dump(singleimg, open ("./data/img%s_%d.p" % (img_type, index), "wb"))
+        #_item['img'] = "./data/img%s_%d.p" % (img_type, index)
+        #_item['target'] = cl[0]
+        _item = (coords, cl[0])
         tosave.append(_item)
-        print(len(tosave))
+        #print(len(tosave))
     pickle.dump( tosave, open( "./data/%s_%d.p" % (img_type, batch_num), "wb" ) )
 
 if __name__ == '__main__':

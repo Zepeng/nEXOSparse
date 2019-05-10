@@ -37,12 +37,10 @@ class Model(nn.Module):
         return x
 
 model = Model()
-print(model.spatial_size)
 scale=63
 
 dataset = get_iterators(model.spatial_size, scale)
 print('Input spatial size:', model.spatial_size, 'Data scale:', scale)
-
 TrainValidate(
     model, dataset,
     {'n_epochs': 100,
