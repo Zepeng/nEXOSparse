@@ -21,7 +21,7 @@ class Data(torch.utils.data.Dataset):
             item = {}
             item['target'] = p[j][1]
             msparse = p[j][0]
-            item['coords'] = torch.cat([torch.from_numpy(msparse.nonzero()[0]).view(-1,1), torch.from_numpy(msparse.nonzero()[1]).view(-1,1)], 1)
+            item['coords'] = torch.cat([torch.from_numpy(msparse.nonzero()[0]).view(-1,1), torch.from_numpy(msparse.nonzero()[1]).view(-1,1)], 1)*1/3.
             features = torch.from_numpy(msparse.data).view(-1,1) #torch.tensor(self.data[j]['features']).unsqueeze(1)
             item['features'] = torch.cat([features, features], 1)
             self.data.append(item)
@@ -62,5 +62,5 @@ def MergeFn():
     return merge
 
 def get_iterators(*args):
-    return {'train': torch.utils.data.DataLoader(Data('data/train_0.p',repeats=1), collate_fn=MergeFn(), batch_size=100, ),
+    return {'train': torch.utils.data.DataLoader(Data('data/train.p',repeats=1), collate_fn=MergeFn(), batch_size=100, ),
             'val': torch.utils.data.DataLoader(Data('data/test_0.p',repeats=1), collate_fn=MergeFn(), batch_size=100, )}

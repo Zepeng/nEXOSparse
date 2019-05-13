@@ -73,6 +73,8 @@ def TrainValidate(model, dataset, p):
         p['epoch'] = 1
     print(p)
     print('#parameters', sum([x.nelement() for x in model.parameters()]))
+    nll_train = np.array([])
+    nll_test = np.array([])
     for epoch in range(p['epoch'], p['n_epochs'] + 1):
         model.train()
         stats = {}
@@ -94,6 +96,8 @@ def TrainValidate(model, dataset, p):
               (100 * stats['top1'] / stats['n'],
             stats['nll'] / stats['n'],
             time.time() - start))
+        nll_train = np.append(nll_train, stats['nll'] / stats['n'])
+        np.savetxt('train_nll.txt', nll_train, delimiter = ',')
         cm = stats['confusion matrix'].cpu().numpy()
         np.savetxt('train_confusion_matrix_%d.csv' % epoch, cm, delimiter=',')
         cm *= 255 / (cm.sum(1, keepdims=True) + 1e-9)
@@ -123,6 +127,8 @@ def TrainValidate(model, dataset, p):
                   (s.forward_pass_multiplyAdd_count /
                       stats['n'], s.forward_pass_hidden_states /
                       stats['n']))
+            nll_test = np.append(nll_test, stats['nll'] / stats['n'])
+            np.savetxt('test_nll.txt', nll_test, delimiter = ',')
         else:
             for rep in range(1, p['test_reps'] + 1):
                 pr = []

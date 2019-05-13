@@ -18,11 +18,11 @@ class Model(nn.Module):
             scn.SubmanifoldConvolution(3, 3, 8, 3, False),
             scn.MaxPooling(2, 3, 2),
             scn.SparseResNet(2, 8, [
-                        ['b', 8, 2, 3],
+                        ['b', 8, 2, 4],
                         ['b', 16, 2, 4],
-                        ['b', 24, 2, 4],
-                        ['b', 32, 2, 4]]),
-            scn.Convolution(2, 32, 64, 5, 1, False),
+                        ['b', 24, 2, 4]]),
+                        #['b', 32, 2, 2]]),
+            scn.Convolution(2, 24, 64, 5, 1, False),
             scn.BatchNormReLU(64),
             scn.SparseToDense(2, 64))
         self.spatial_size= self.sparseModel.input_spatial_size(torch.LongTensor([1, 1]))
