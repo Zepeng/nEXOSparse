@@ -105,7 +105,7 @@ def TrainValidate(model, dataset, p):
             './results/train_confusion_matrix_%d.png' % epoch)
         if p['check_point']:
             torch.save(epoch, 'epoch.pth')
-            torch.save(model.state_dict(), 'model.pth')
+        torch.save(model.state_dict(), 'model.pth')
 
         model.eval()
         s.forward_pass_multiplyAdd_count = 0
