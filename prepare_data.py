@@ -13,13 +13,13 @@ import argparse
 from PIL import Image
 from scipy import sparse
 
-batch_size = 500
+batch_size = 1000
 
 def split_files():
-    imagelist = glob.glob('../nEXO/sparse_img/*jpg')
-    if not os.path.exists('../nEXO/sparse_img/train.txt'):
-        trainlist = open('../nEXO/sparse_img/train.txt', 'w')
-        testlist = open('../nEXO/sparse_img/test.txt', 'w')
+    imagelist = glob.glob('./sparse_img/*jpg')
+    if not os.path.exists('./sparse_img/train.txt'):
+        trainlist = open('./sparse_img/train.txt', 'w')
+        testlist = open('./sparse_img/test.txt', 'w')
         for img_file in imagelist:
             if random.random() > 0.2:
                 trainlist.write(img_file)
@@ -40,11 +40,11 @@ def pickle_img(img_list, batch_num, img_type):
     f = open(img_list,'r')
     tosave = []
     for index, line in enumerate(f):
+        singleimg = {}
         if index <= batch_num*batch_size or index > (1+batch_num)*(batch_size):
             continue
         # Get image name from the pandas df
-        single_image_name = "../nEXO/" + line.split()[0]
-        print(single_image_name)
+        single_image_name = line.split()[0]
         # Open image
         img_as_img = Image.open(single_image_name)
 	    # data augmentation
@@ -54,21 +54,31 @@ def pickle_img(img_list, batch_num, img_type):
         cl=[]
         sx = sparse.csc_matrix(npimg[:,:,0])
         sy = sparse.csc_matrix(npimg[:,:,1])
-        coords_x = np.concatenate((sx.nonzero()[0] + 500, sy.nonzero()[0]))
+        coords_x = np.concatenate((sx.nonzero()[0] + 450, sy.nonzero()[0]))
         coords_y = np.concatenate((sx.nonzero()[1], sy.nonzero()[1]))
         col = np.concatenate((sx.data, sy.data))
         coords = sparse.csc_matrix((col, (coords_x, coords_y)))
+        #_item = {}
+        #coords=np.array(coords,dtype='int16')
+        #col=np.array(col,dtype='uint8')
         if 'signal' in single_image_name:
             cl.append(1)
         else:
             cl.append(0)
+        #_item['coords'] = coords
+        #_item['features'] = col
+        #pickle.dump(singleimg, open ("./data/img%s_%d.p" % (img_type, index), "wb"))
+        #_item['img'] = "./data/img%s_%d.p" % (img_type, index)
+        #_item['target'] = cl[0]
         _item = (coords, cl[0])
-        #tosave.append(_item)
-        pickle.dump( _item, open( "./data/%s_%d_%d.p" % (img_type, batch_num,index), "wb" ) )
+        pickle.dump(_item, open ("./data_new/img%s_%d.p" % (img_type, index), "wb"))
+        tosave.append(_item)
+        #print(len(tosave))
+    pickle.dump( tosave, open( "./data/%s_%d.p" % (img_type, batch_num), "wb" ) )
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Prepare data.')
     parser.add_argument('--bn', type=int, default=0, help='batch number')
     parser.add_argument('--img_type', type=str, default='train', help='batch number')
     args = parser.parse_args()
-    pickle_img('../nEXO/sparse_img/%s.txt' % args.img_type, args.bn, args.img_type)
+    pickle_img('./sparse_img/%s.txt' % args.img_type, args.bn, args.img_type)

@@ -99,10 +99,10 @@ def TrainValidate(model, dataset, p):
         nll_train = np.append(nll_train, stats['nll'] / stats['n'])
         np.savetxt('train_nll.txt', nll_train, delimiter = ',')
         cm = stats['confusion matrix'].cpu().numpy()
-        np.savetxt('train_confusion_matrix_%d.csv' % epoch, cm, delimiter=',')
+        np.savetxt('./results/train_confusion_matrix_%d.csv' % epoch, cm, delimiter=',')
         cm *= 255 / (cm.sum(1, keepdims=True) + 1e-9)
         Image.fromarray(cm.astype('uint8'), mode='L').save(
-            'train_confusion_matrix_%d.png' % epoch)
+            './results/train_confusion_matrix_%d.png' % epoch)
         if p['check_point']:
             torch.save(epoch, 'epoch.pth')
             torch.save(model.state_dict(), 'model.pth')
@@ -164,7 +164,7 @@ def TrainValidate(model, dataset, p):
                           s.forward_pass_multiplyAdd_count / stats['n'],
                           s.forward_pass_hidden_states / stats['n']))
         cm = stats['confusion matrix'].cpu().numpy()
-        np.savetxt('test_confusion_matrix_%d.csv' % epoch, cm, delimiter=',')
+        np.savetxt('./results/test_confusion_matrix_%d.csv' % epoch, cm, delimiter=',')
         cm *= 255 / (cm.sum(1, keepdims=True) + 1e-9)
         Image.fromarray(cm.astype('uint8'), mode='L').save(
-            'test_confusion_matrix_%d.png' % epoch)
+            './results/test_confusion_matrix_%d.png' % epoch)
