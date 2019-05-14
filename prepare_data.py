@@ -21,7 +21,7 @@ def split_files():
         trainlist = open('./sparse_img/train.txt', 'w')
         testlist = open('./sparse_img/test.txt', 'w')
         for img_file in imagelist:
-            if random.random() > 0.2:
+            if random.random() > 0.1:
                 trainlist.write(img_file)
                 if 'signal' in img_file:
                     trainlist.write(' 1\n')
@@ -38,7 +38,6 @@ split_files()
 
 def pickle_img(img_list, batch_num, img_type):
     f = open(img_list,'r')
-    tosave = []
     for index, line in enumerate(f):
         singleimg = {}
         if index <= batch_num*batch_size or index > (1+batch_num)*(batch_size):
@@ -58,23 +57,12 @@ def pickle_img(img_list, batch_num, img_type):
         coords_y = np.concatenate((sx.nonzero()[1], sy.nonzero()[1]))
         col = np.concatenate((sx.data, sy.data))
         coords = sparse.csc_matrix((col, (coords_x, coords_y)))
-        #_item = {}
-        #coords=np.array(coords,dtype='int16')
-        #col=np.array(col,dtype='uint8')
         if 'signal' in single_image_name:
             cl.append(1)
         else:
             cl.append(0)
-        #_item['coords'] = coords
-        #_item['features'] = col
-        #pickle.dump(singleimg, open ("./data/img%s_%d.p" % (img_type, index), "wb"))
-        #_item['img'] = "./data/img%s_%d.p" % (img_type, index)
-        #_item['target'] = cl[0]
         _item = (coords, cl[0])
         pickle.dump(_item, open ("./data_new/img%s_%d.p" % (img_type, index), "wb"))
-        tosave.append(_item)
-        #print(len(tosave))
-    pickle.dump( tosave, open( "./data/%s_%d.p" % (img_type, batch_num), "wb" ) )
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Prepare data.')
